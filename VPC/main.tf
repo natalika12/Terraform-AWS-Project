@@ -1,92 +1,51 @@
-resource "aws_vpc" "main" {
-  cidr_block       = var.cidr_block   #string variable
-  instance_tenancy = var.instance_tenancy # string variable
-  tags             = var.tags
-}
+# Specify AMI Linux-2
+data "aws_ami" "amazon-2" {
+  most_recent = true
 
-resource "aws_subnet" "public_subnet1" {
-  vpc_id     = aws_vpc.main.id
-  cidr_block = var.public_subnet1
-  tags       = var.tags
-}  
-resource "aws_subnet" "public_subnet2" {
-  vpc_id     = aws_vpc.main.id
-  cidr_block = var.public_subnet2
-  tags       = var.tags
-}  
-resource "aws_subnet" "public_subnet3" {
-  vpc_id     = aws_vpc.main.id
-  cidr_block = var.public_subnet3
-  tags       = var.tags
-}  
-resource "aws_subnet" "private_subnet1" {
-  vpc_id     = aws_vpc.main.id
-  cidr_block = var.private_subnet1
-  tags       = var.tags
-}  
-
-resource "aws_subnet" "private_subnet2" {
-  vpc_id     = aws_vpc.main.id
-  cidr_block = var.private_subnet2
-  tags       = var.tags
-}
-
-resource "aws_subnet" "private_subnet3" {
-  vpc_id     = aws_vpc.main.id
-  cidr_block = var.private_subnet3
-  tags       = var.tags
-}
-resource "aws_internet_gateway" "gw" {
- vpc_id = aws_vpc.main.id
- tags   = var.tags
-} 
-# Attach Internet Gateway to Public Subnets
-resource "aws_route_table" "public_route_table" {
-  vpc_id = aws_vpc.main.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.gw.id
-  
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-ebs"]
   }
- }
-
-resource "aws_route_table" "private_route_table" {
-  vpc_id       = aws_vpc.main.id
+  owners = ["amazon"]
 }
 
-  #Create route table associations 
-resource "aws_route_table_association" "public1" {
-  subnet_id      = aws_subnet.public_subnet1.id
-  route_table_id = aws_route_table.public_route_table.id
+resource "aws_ami_from_instance" "wordpress" {
+  name               = "terraform-wordpress"
+  source_instance_id = aws_instance.wordpress.id
 }
-resource "aws_route_table_association" "public2" {
-  subnet_id      = aws_subnet.public_subnet2.id
-  route_table_id = aws_route_table.public_route_table.id
-}
-resource "aws_route_table_association" "public3" {
-  subnet_id      = aws_subnet.public_subnet3.id
-  route_table_id = aws_route_table.public_route_table.id
-}
- resource "aws_route_table_association" "private1" {
-  subnet_id      = aws_subnet.private_subnet1.id
-  route_table_id = aws_route_table.private_route_table.id
- }
- resource "aws_route_table_association" "private2" {
-  subnet_id      = aws_subnet.private_subnet2.id
-  route_table_id = aws_route_table.private_route_table.id
- }
- resource "aws_route_table_association" "private3" {
-  subnet_id      = aws_subnet.private_subnet3.id
-  route_table_id = aws_route_table.private_route_table.id
- }
- resource "aws_eip" "nat" {
-  domain     = "vpc"
- }
+# Create VM 
+resource "aws_instance" "wordpress" {
+  ami                         = data.aws_ami.amazon-2.id
+  instance_type               = "t2.micro"
+  vpc_security_group_ids      = [aws_security_group.my_sg.id]
+  key_name                    = aws_key_pair.project.key_name
+  subnet_id                   = aws_subnet.public1.id
+  associate_public_ip_address = true
 
-resource "aws_nat_gateway" "example" {
-   allocation_id = aws_eip.nat.id
-   subnet_id     = aws_subnet.public_subnet1.id
-   depends_on = [aws_internet_gateway.gw]
-   tags   = var.tags
- }
+  tags = {
+    "Name" : "wordpress_for_ami"
+  }
+
+  connection {
+    type        = "ssh"
+    user        = var.instance_username
+    private_key = file(var.path_to_private_key)
+    host        = aws_instance.wordpress.public_ip
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo yum update -y",
+      "sudo yum install -y httpd php php-mysqlnd",
+      "sudo systemctl start httpd",
+      "sudo systemctl enable httpd",
+      "sudo amazon-linux-extras install -y lamp-mariadb10.2-php7.2 php7.2",
+      "cd /var/www/html",
+      "sudo wget https://wordpress.org/latest.tar.gz",
+      "sudo tar -xzf latest.tar.gz",
+      "sudo cp -R wordpress/* /var/www/html/",
+      "sudo chown -R apache:apache /var/www/html/",
+      "sudo systemctl restart httpd"
+    ]
+  }
+}

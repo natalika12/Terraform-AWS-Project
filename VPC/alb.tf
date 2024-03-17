@@ -15,7 +15,7 @@ resource "aws_alb_target_group" "project-tg" {
   port        = 80
   protocol    = "HTTP"
   target_type = "instance"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = aws_vpc.Project.id
 
   health_check {
     interval            = 30

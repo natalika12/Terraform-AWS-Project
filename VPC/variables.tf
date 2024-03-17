@@ -79,13 +79,13 @@ variable "path_to_private_key" {
 variable "domain_name" {
   description = "provide domain name"
   type        = string
-  default     = "awszinych.net"
+  default     = "nataliia.net"
 }
 
 variable "zone_id" {
   description = "provide zone id"
   type        = string
-  default     = "Z08474008GXELP7I7JYI"
+  default     = "Z0568994DIZADS96SOSP"
 }
 
 variable "database_name" {
@@ -109,7 +109,7 @@ variable "master_username" {
 variable "master_password" {
   description = "master password"
   type        = string
-  default     = "WooHooWeDidIt!1"
+  default     = "connectionWoW"
 }
 
 variable "availability_zone" {
