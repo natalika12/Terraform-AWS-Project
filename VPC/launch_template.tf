@@ -9,5 +9,5 @@ resource "aws_launch_template" "mlt" {
     associate_public_ip_address = true
     security_groups             = [aws_security_group.my_sg.id]  
   }
-  user_data = filebase64("${path.module}/installation.sh")
+  user_data = filebase64("${path.module}/install.sh")
 }
