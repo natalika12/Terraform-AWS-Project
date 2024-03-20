@@ -1,8 +1,8 @@
 variable "path_to_public_key" {
   description = "public key location on terraform instance"
   type        = string
-  default     = "" 
-  # default     = "/home/ec2-user/.ssh/id_rsa.pub"
+  default     = "/home/ec2-user/.ssh/id_rsa.pub"
+
 }
 
 variable "sec_group_name" {
@@ -73,8 +73,8 @@ variable "instance_username" {
 variable "path_to_private_key" {
   description = "private key location on terraform instance"
   type        = string
-  default     = ""
-  # default     = "/home/ec2-user/.ssh/id_rsa"
+  default     = "/home/ec2-user/.ssh/id_rsa"
+  
 }
 
 
