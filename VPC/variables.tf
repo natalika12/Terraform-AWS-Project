@@ -70,14 +70,6 @@ variable "instance_username" {
   default     = "ec2-user"
 }
 
-variable "path_to_private_key" {
-  description = "private key location on terraform instance"
-  type        = string
-  default     = "/home/ec2-user/.ssh/id_rsa"
-  
-}
-
-
 variable "domain_name" {
   description = "provide domain name"
   type        = string
